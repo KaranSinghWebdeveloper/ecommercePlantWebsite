@@ -96,3 +96,4 @@ coverage/
 # PM2 Logs
 # ==========================================
 .pm2/
+/generated/prisma
