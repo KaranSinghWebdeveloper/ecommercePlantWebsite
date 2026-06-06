@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Search, ShoppingCart, Heart, Menu, X, MapPin, User, Leaf } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
+import { categories } from '../data/products';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -134,18 +135,39 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Navigation - Desktop */}
-          <nav className="hidden md:flex items-center gap-6 pb-3 overflow-x-auto">
-            {menuItems.map((item) => (
+          {/* Navigation - Desktop - Dynamic Categories */}
+          <nav className="hidden md:flex items-center gap-4 pb-3 overflow-x-auto scrollbar-hide scroll-smooth">
+            <Link href="/" className="px-3 py-1 bg-muted text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground rounded-full transition-colors whitespace-nowrap">
+              Home
+            </Link>
+            {categories.map((cat) => (
               <Link
-                key={item.path}
-                href={item.path}
+                key={cat.id}
+                href={`/category/${cat.id}`}
                 className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap"
               >
-                {item.label}
+                {cat.name}
               </Link>
             ))}
           </nav>
+
+          {/* Navigation - Mobile - Dynamic Categories */}
+          <div className="md:hidden overflow-x-auto scrollbar-hide scroll-smooth">
+            <nav className="flex items-center gap-3 pb-3">
+              <Link href="/" className="px-3 py-1 bg-muted text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground rounded-full transition-colors whitespace-nowrap">
+                Home
+              </Link>
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/category/${cat.id}`}
+                  className="px-3 py-1 bg-muted text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground rounded-full transition-colors whitespace-nowrap"
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
       </header>
 

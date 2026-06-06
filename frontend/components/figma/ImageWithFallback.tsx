@@ -29,6 +29,7 @@ export function ImageWithFallback(props: React.ComponentProps<typeof Image>) {
   return (
     <div className="relative w-full h-full">
       <Image
+        loading="lazy"
         src={source}
         alt={alt?.toString() ?? 'Image'}
         fill

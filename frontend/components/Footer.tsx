@@ -12,8 +12,9 @@ export default function Footer() {
           {/* Brand Section */}
           <div>
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
-                <Leaf className="w-6 h-6 text-white" />
+              <div className="">
+                {/* <Leaf className="w-6 h-6 text-white" /> */}
+                <img src="/HarYali.png" alt="HarYali Logo" width="70" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-primary">HarYali</h3>

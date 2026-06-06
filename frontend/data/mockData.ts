@@ -71,6 +71,8 @@ export const products: Product[] = [
     discount: 33,
     images: [
       "https://images.unsplash.com/photo-1525498128493-380d1990a112?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb25zdGVyYSUyMGRlbGljaW9zYSUyMGhvdXNlcGxhbnR8ZW58MXx8fHwxNzgwNDE3NjkxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1525498128493-380d1990a112?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb25zdGVyYSUyMGRlbGljaW9zYSUyMGhvdXNlcGxhbnR8ZW58MXx8fHwxNzgwNDE3NjkxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+
     ],
     inStock: true,
     size: "Medium",

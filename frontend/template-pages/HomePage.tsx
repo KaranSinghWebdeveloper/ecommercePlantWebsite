@@ -228,7 +228,7 @@ export default function HomePage() {
       </section>
 
       {/* Sticky Mobile Categories Bar */}
-      <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border transition-all duration-300 shadow-sm"
+      {/* <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border transition-all duration-300 shadow-sm"
         style={{ transform: isStickyVisible ? 'translateY(0)' : 'translateY(-100%)' }}>
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-2 px-3 py-2 w-max">
@@ -257,7 +257,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Categories Section */}
       <section id="categories" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8">
@@ -283,7 +283,7 @@ export default function HomePage() {
               >
                 <Link
                   href={`/category/${category.id}`}
-                  className="group relative block w-40 sm:w-48 md:w-56 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all"
+                  className="group relative block w-24 sm:w-32 md:w-40 lg:w-48 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all"
                 >
                   <ImageWithFallback
                     src={category.image}
