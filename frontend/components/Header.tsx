@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { getCartCount, wishlist } = useCart();
+  const { getCartCount, wishlist, isHydrated } = useCart();
   const router = useRouter();
 
   const menuItems = [
@@ -91,7 +91,7 @@ export default function Header() {
               {/* Wishlist */}
               <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
                 <Heart className="w-5 h-5 md:w-6 md:h-6 text-foreground" />
-                {wishlist.length > 0 && (
+                {isHydrated && wishlist.length > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center font-semibold">
                     {wishlist.length}
                   </span>
@@ -104,7 +104,7 @@ export default function Header() {
                 className="relative p-2 rounded-lg hover:bg-muted transition-colors"
               >
                 <ShoppingCart className="w-5 h-5 md:w-6 md:h-6 text-foreground" />
-                {getCartCount() > 0 && (
+                {isHydrated && getCartCount() > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-semibold">
                     {getCartCount()}
                   </span>

@@ -12,8 +12,10 @@ import MobileBottomNav from '../components/MobileBottomNav';
 import { products as allProducts, categories } from '../data/products';
 import { productImages, categoryImages, heroImages } from '../data/imageMapping';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { useHydrated } from '../hooks/useHydrated';
 
 export default function HomePage() {
+  const hydrated = useHydrated();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('featured');
@@ -131,10 +133,11 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="relative h-[220px] md:h-[600px] overflow-hidden bg-gradient-to-br from-primary/5 to-secondary/10">
+        {hydrated ? (
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.7 }}
@@ -150,29 +153,41 @@ export default function HomePage() {
             />
           </motion.div>
         </AnimatePresence>
+        ) : (
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/20 z-10" />
+            <ImageWithFallback
+              src={heroImages[0]}
+              alt="Hero"
+              className="w-full h-full object-cover"
+              sizes="100vw"
+              loading="eager"
+            />
+          </div>
+        )}
 
         {/* Hero Content */}
         <div className="relative z-20 h-full flex items-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <motion.div
-              key={currentSlide}
-              initial={{ y: 20, opacity: 0 }}
+              key={hydrated ? currentSlide : 0}
+              initial={false}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: hydrated ? 0.3 : 0 }}
               className="max-w-2xl"
             >
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-                {heroContent[currentSlide].title}
+                {heroContent[hydrated ? currentSlide : 0].title}
               </h1>
               <p className="text-xl md:text-2xl text-white/90 mb-8 drop-shadow-md">
-                {heroContent[currentSlide].subtitle}
+                {heroContent[hydrated ? currentSlide : 0].subtitle}
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
                   href="#products"
                   className="px-8 py-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors shadow-lg"
                 >
-                  {heroContent[currentSlide].cta}
+                  {heroContent[hydrated ? currentSlide : 0].cta}
                 </Link>
                 <Link
                   href="#categories"
@@ -260,16 +275,15 @@ export default function HomePage() {
         <div className="overflow-x-auto scrollbar-hide scroll-smooth">
           <div className="flex gap-3 md:gap-4 pb-2 px-4 sm:px-6 lg:px-8 w-max">
             {categoriesWithImages.map((category, index) => (
-              <motion.button
+              <motion.div
                 key={category.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                onClick={() => {
-                  setSelectedCategory(category.id);
-                  document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="group relative w-40 sm:w-48 md:w-56 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all"
+              >
+              <Link
+                href={`/category/${category.id}`}
+                className="group relative block w-40 sm:w-48 md:w-56 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all"
               >
                 <ImageWithFallback
                   src={category.image}
@@ -281,7 +295,8 @@ export default function HomePage() {
                   <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
                   <p className="text-xs text-white/80">{category.productCount} products</p>
                 </div>
-              </motion.button>
+              </Link>
+              </motion.div>
             ))}
             <div className="w-20 md:w-24 flex-shrink-0" />
           </div>
@@ -359,7 +374,7 @@ export default function HomePage() {
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               className="bg-card p-6 rounded-2xl shadow-md"

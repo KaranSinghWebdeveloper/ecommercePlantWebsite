@@ -10,7 +10,7 @@ import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import FloatingCart from '../components/FloatingCart';
 import MobileBottomNav from '../components/MobileBottomNav';
-import { products as allProducts } from '../data/products';
+import { products as allProducts, categories } from '../data/products';
 import { productImages } from '../data/imageMapping';
 import { useCart } from '../context/CartContext';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useCart();
+  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist, isHydrated } = useCart();
   const [quantity, setQuantity] = useState(1);
 
   // Find product and add images
@@ -43,7 +43,10 @@ export default function ProductDetailPage() {
     image: productImages[product.id as keyof typeof productImages],
   };
 
-  const inWishlist = isInWishlist(product.id);
+  const category = categories.find(c => c.name === product.category);
+  const categoryHref = category ? `/category/${category.id}` : '/#products';
+
+  const inWishlist = isHydrated && isInWishlist(product.id);
 
   // Related products (same category, excluding current)
   const relatedProducts = allProducts
@@ -87,7 +90,7 @@ export default function ProductDetailPage() {
         <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
           <Link href="/" className="hover:text-primary">Home</Link>
           <span>/</span>
-          <Link href="/#products" className="hover:text-primary">{product.category}</Link>
+          <Link href={categoryHref} className="hover:text-primary">{product.category}</Link>
           <span>/</span>
           <span className="text-foreground">{product.name}</span>
         </nav>
@@ -97,7 +100,7 @@ export default function ProductDetailPage() {
           {/* Image Gallery */}
           <div className="space-y-4">
             <motion.div
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{ opacity: 1 }}
               className="relative aspect-square rounded-2xl overflow-hidden bg-muted"
             >

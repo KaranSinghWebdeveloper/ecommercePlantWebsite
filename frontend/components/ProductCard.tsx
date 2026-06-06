@@ -13,8 +13,8 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useCart();
-  const inWishlist = isInWishlist(product.id);
+  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist, isHydrated } = useCart();
+  const inWishlist = isHydrated && isInWishlist(product.id);
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -32,8 +32,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={false}
       whileHover={{ y: -8 }}
       transition={{ duration: 0.3 }}
     >

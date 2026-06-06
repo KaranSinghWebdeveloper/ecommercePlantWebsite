@@ -9,7 +9,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 
 export default function FloatingCart() {
   const [isOpen, setIsOpen] = useState(false);
-  const { cart, removeFromCart, updateQuantity, getCartTotal, getCartCount } = useCart();
+  const { cart, removeFromCart, updateQuantity, getCartTotal, getCartCount, isHydrated } = useCart();
   const router = useRouter();
 
   const deliveryFee = getCartTotal() >= 999 ? 0 : 50;
@@ -25,15 +25,15 @@ export default function FloatingCart() {
     <>
       {/* Floating Cart Button */}
       <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
+        initial={false}
+        animate={isHydrated ? { scale: 1 } : undefined}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 right-6 z-40 w-16 h-16 bg-primary text-primary-foreground rounded-full shadow-2xl flex items-center justify-center hover:bg-primary/90 transition-colors"
       >
         <ShoppingCart className="w-6 h-6" />
-        {getCartCount() > 0 && (
+        {isHydrated && getCartCount() > 0 && (
           <span className="absolute -top-2 -right-2 w-7 h-7 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-sm font-bold">
             {getCartCount()}
           </span>

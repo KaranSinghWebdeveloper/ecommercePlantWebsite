@@ -6,6 +6,7 @@ import { Product, CartItem } from '../data/products';
 interface CartContextType {
   cart: CartItem[];
   wishlist: Product[];
+  isHydrated: boolean;
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -24,30 +25,39 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<Product[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    // Load from localStorage after hydration to avoid hydration mismatch
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const savedCart = window.localStorage.getItem('plantShopCart');
     const savedWishlist = window.localStorage.getItem('plantShopWishlist');
 
     if (savedCart) {
-      setCart(JSON.parse(savedCart));
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch {
+        window.localStorage.removeItem('plantShopCart');
+      }
     }
     if (savedWishlist) {
-      setWishlist(JSON.parse(savedWishlist));
+      try {
+        setWishlist(JSON.parse(savedWishlist));
+      } catch {
+        window.localStorage.removeItem('plantShopWishlist');
+      }
     }
+
+    setIsHydrated(true);
   }, []);
 
-  // Save cart to localStorage
   useEffect(() => {
+    if (!isHydrated) return;
     window.localStorage.setItem('plantShopCart', JSON.stringify(cart));
-  }, [cart]);
+  }, [cart, isHydrated]);
 
-  // Save wishlist to localStorage
   useEffect(() => {
+    if (!isHydrated) return;
     window.localStorage.setItem('plantShopWishlist', JSON.stringify(wishlist));
-  }, [wishlist]);
+  }, [wishlist, isHydrated]);
 
   const addToCart = (product: Product) => {
     setCart((prev) => {
@@ -113,6 +123,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       value={{
         cart,
         wishlist,
+        isHydrated,
         addToCart,
         removeFromCart,
         updateQuantity,

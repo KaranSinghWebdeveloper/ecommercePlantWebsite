@@ -15,7 +15,7 @@ export default function CheckoutPage() {
   const { cart, getCartTotal, clearCart } = useCart();
   const router = useRouter();
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [orderId] = useState(() => `ORD${Date.now().toString().slice(-8)}`);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -49,6 +49,7 @@ export default function CheckoutPage() {
     }
 
     // Simulate order placement
+    setOrderId(`ORD${Date.now().toString().slice(-8)}`);
     setOrderPlaced(true);
 
     // Clear cart after a delay
@@ -63,7 +64,7 @@ export default function CheckoutPage() {
         <Header />
         <div className="max-w-2xl mx-auto px-4 py-16 text-center">
           <motion.div
-            initial={{ scale: 0 }}
+            initial={false}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', duration: 0.5 }}
           >
