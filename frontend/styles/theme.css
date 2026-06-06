@@ -39,7 +39,7 @@
   --sidebar-accent-foreground: #2E7D32;
   --sidebar-border: rgba(46, 125, 50, 0.15);
   --sidebar-ring: #2E7D32;
-  
+
   /* Plant theme earth tones */
   --earth-brown: #8D6E63;
   --earth-beige: #D7CCC8;
@@ -183,4 +183,21 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+}
+
+/* Scrollbar utilities */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+}
+
+.scroll-smooth {
+  scroll-behavior: smooth;
 }

@@ -66,6 +66,20 @@ export default function Header() {
               </div>
             </form>
 
+            {/* Search Bar - Mobile */}
+            <form onSubmit={handleSearch} className="flex md:hidden flex-1 max-w-xs mx-3">
+              <div className="relative w-full">
+                <input
+                  type="text"
+                  placeholder="Search plants..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-3 py-2 pl-9 rounded-full border border-input bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              </div>
+            </form>
+
             {/* Right Icons */}
             <div className="flex items-center gap-3 md:gap-4">
               {/* Location */}
@@ -85,7 +99,7 @@ export default function Header() {
               </button>
 
               {/* Cart */}
-              <button 
+              <button
                 onClick={() => router.push('/checkout')}
                 className="relative p-2 rounded-lg hover:bg-muted transition-colors"
               >
@@ -128,20 +142,6 @@ export default function Header() {
               </Link>
             ))}
           </nav>
-        </div>
-
-        {/* Mobile Search */}
-        <div className="md:hidden px-4 pb-3">
-          <form onSubmit={handleSearch} className="relative">
-            <input
-              type="text"
-              placeholder="Search plants..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 pl-10 rounded-full border border-input bg-input-background focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          </form>
         </div>
       </header>
 

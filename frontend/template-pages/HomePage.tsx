@@ -17,6 +17,7 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('featured');
+  const [isStickyVisible, setIsStickyVisible] = useState(false);
 
   // Map images to products and categories
   const productsWithImages = allProducts.map(p => ({
@@ -61,6 +62,20 @@ export default function HomePage() {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
     }, 5000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Handle sticky categories visibility on mobile
+  useEffect(() => {
+    const handleScroll = () => {
+      const categoriesSection = document.getElementById('categories');
+      if (!categoriesSection) return;
+
+      const rect = categoriesSection.getBoundingClientRect();
+      setIsStickyVisible(rect.top < 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const nextSlide = () => {
@@ -197,42 +212,79 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section id="categories" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-            Shop by Category
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore our wide range of plants for every space and style
-          </p>
-        </div>
-
-        <div className="flex gap-4 overflow-x-auto py-2 -mx-4 px-4 md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-6">
-          {categoriesWithImages.map((category, index) => (
+      {/* Sticky Mobile Categories Bar */}
+      <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border transition-all duration-300 shadow-sm"
+        style={{ transform: isStickyVisible ? 'translateY(0)' : 'translateY(-100%)' }}>
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 px-3 py-2 w-max">
             <motion.button
-              key={category.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
               onClick={() => {
-                setSelectedCategory(category.id);
+                setSelectedCategory('all');
                 document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="group relative w-40 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all md:aspect-square md:w-auto"
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${selectedCategory === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground hover:bg-muted/80'
+                }`}
             >
-              <ImageWithFallback
-                src={category.image}
-                alt={category.name}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                <h3 className="font-semibold mb-1">{category.name}</h3>
-                <p className="text-sm text-white/80">{category.productCount} products</p>
-              </div>
+              All
             </motion.button>
-          ))}
+            {categoriesWithImages.slice(0, 6).map((category) => (
+              <motion.button
+                key={category.id}
+                onClick={() => {
+                  setSelectedCategory(category.id);
+                  document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${selectedCategory === category.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground hover:bg-muted/80'
+                  }`}
+              >
+                {category.name.split(' ')[0]}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Categories Section */}
+      <section id="categories" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto mb-8 md:mb-10">
+          <div className="text-center">
+            <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">
+              Shop by Category
+            </h2>
+            <p className="text-xs md:text-base text-muted-foreground">
+              Explore our wide range of plants for every space and style
+            </p>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto scrollbar-hide scroll-smooth">
+          <div className="flex gap-3 md:gap-4 pb-2 px-4 sm:px-6 lg:px-8 w-max">
+            {categoriesWithImages.map((category, index) => (
+              <motion.button
+                key={category.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                onClick={() => {
+                  setSelectedCategory(category.id);
+                  document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="group relative w-40 sm:w-48 md:w-56 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all"
+              >
+                <ImageWithFallback
+                  src={category.image}
+                  alt={category.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 text-white">
+                  <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
+                  <p className="text-xs text-white/80">{category.productCount} products</p>
+                </div>
+              </motion.button>
+            ))}
+            <div className="w-20 md:w-24 flex-shrink-0" />
+          </div>
         </div>
       </section>
 
@@ -240,20 +292,20 @@ export default function HomePage() {
       <section id="products" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+            <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-2">
               Featured Plants
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-xs md:text-base text-muted-foreground">
               {selectedCategory === 'all' ? 'All Products' : categories.find(c => c.id === selectedCategory)?.name}
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 text-sm">
             {/* Category Filter */}
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-input bg-input-background focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-3 md:px-4 py-2 rounded-lg border border-input bg-input-background focus:outline-none focus:ring-2 focus:ring-primary text-sm"
             >
               <option value="all">All Categories</option>
               {categories.map((cat) => (
@@ -267,7 +319,7 @@ export default function HomePage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-input bg-input-background focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-3 md:px-4 py-2 rounded-lg border border-input bg-input-background focus:outline-none focus:ring-2 focus:ring-primary text-sm"
             >
               <option value="featured">Featured</option>
               <option value="bestsellers">Best Sellers</option>
