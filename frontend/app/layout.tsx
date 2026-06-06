@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "GreenNest",
+  title: "HarYali - Your Plant Haven",
   description: "Demo plant ecommerce storefront",
 };
 

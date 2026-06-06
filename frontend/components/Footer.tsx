@@ -16,7 +16,7 @@ export default function Footer() {
                 <Leaf className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-primary">GreenNest</h3>
+                <h3 className="text-lg font-bold text-primary">HarYali</h3>
                 <p className="text-xs text-muted-foreground">Bring Nature Home</p>
               </div>
             </Link>
@@ -126,8 +126,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-                <a href="mailto:support@greennest.com" className="text-muted-foreground hover:text-primary transition-colors">
-                  support@greennest.com
+                <a href="mailto:support@haryali.com" className="text-muted-foreground hover:text-primary transition-colors">
+                  support@haryali.com
                 </a>
               </li>
             </ul>
@@ -195,7 +195,7 @@ export default function Footer() {
         {/* Copyright */}
         <div className="text-center pt-8">
           <p className="text-sm text-muted-foreground" suppressHydrationWarning>
-            © {new Date().getFullYear()} GreenNest. All rights reserved. | Crafted with 💚 for Plant Lovers
+            © {new Date().getFullYear()} HarYali. All rights reserved. | Crafted with 💚 for Plant Lovers
           </p>
         </div>
       </div>

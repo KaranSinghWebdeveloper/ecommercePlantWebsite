@@ -45,11 +45,13 @@ export default function Header() {
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <Leaf className="w-6 h-6 text-white" />
+              <div className="">
+                {/* <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"> */}
+                {/* <Leaf className="w-6 h-6 text-white" /> */}
+                <img src="/HarYali.png" alt="HarYali Logo" width="70" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl md:text-2xl font-bold text-primary">GreenNest</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-primary">HarYali</h1>
                 <p className="text-xs text-muted-foreground">Bring Nature Home</p>
               </div>
             </Link>

@@ -122,7 +122,7 @@ export default function HomePage() {
     {
       name: 'Sneha Patel',
       rating: 5,
-      text: 'Love the variety! Got beautiful plants for my balcony garden. Highly recommend GreenNest!',
+      text: 'Love the variety! Got beautiful plants for my balcony garden. Highly recommend HarYali!',
       image: '👩',
     },
   ];
