@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Search, ShoppingCart, Heart, Menu, MapPin, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -11,7 +12,26 @@ import { useCart } from "../context/CartContext";
 
 export function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const { getTotalItems } = useCart();
+  const router = useRouter();
+
+  const handleDesktopSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (q) router.push(`/search?q=${encodeURIComponent(q)}`);
+    else router.push("/search");
+  };
+
+  const handleMobileSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = mobileSearchQuery.trim();
+    if (q) router.push(`/search?q=${encodeURIComponent(q)}`);
+    else router.push("/search");
+    setIsSearchOpen(false);
+    setMobileSearchQuery("");
+  };
 
   const categories = [
     "Indoor Plants",
@@ -55,16 +75,18 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Search */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-8">
+          <form onSubmit={handleDesktopSearch} className="hidden md:flex flex-1 max-w-xl mx-8">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search plants, pots, accessories..."
                 className="pl-10 bg-muted/50 border-0"
               />
             </div>
-          </div>
+          </form>
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-4">
@@ -135,16 +157,19 @@ export function Navbar() {
 
         {/* Mobile Search */}
         {isSearchOpen && (
-          <div className="md:hidden mt-4">
+          <form onSubmit={handleMobileSearch} className="md:hidden mt-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
+                value={mobileSearchQuery}
+                onChange={(e) => setMobileSearchQuery(e.target.value)}
                 placeholder="Search plants..."
                 className="pl-10 bg-muted/50"
+                autoFocus
               />
             </div>
-          </div>
+          </form>
         )}
 
         {/* Desktop Category Menu */}

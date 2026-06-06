@@ -134,25 +134,25 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative h-[220px] md:h-[600px] overflow-hidden bg-gradient-to-br from-primary/5 to-secondary/10">
         {hydrated ? (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentSlide}
-            initial={false}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.7 }}
-            className="absolute inset-0"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/20 z-10" />
-            <ImageWithFallback
-              src={heroImages[currentSlide]}
-              alt="Hero"
-              className="w-full h-full object-cover"
-              sizes="100vw"
-              loading="eager"
-            />
-          </motion.div>
-        </AnimatePresence>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7 }}
+              className="absolute inset-0"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/20 z-10" />
+              <ImageWithFallback
+                src={heroImages[currentSlide]}
+                alt="Hero"
+                className="w-full h-full object-cover"
+                sizes="100vw"
+                loading="eager"
+              />
+            </motion.div>
+          </AnimatePresence>
         ) : (
           <div className="absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/20 z-10" />
@@ -281,21 +281,21 @@ export default function HomePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-              <Link
-                href={`/category/${category.id}`}
-                className="group relative block w-40 sm:w-48 md:w-56 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all"
-              >
-                <ImageWithFallback
-                  src={category.image}
-                  alt={category.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 text-white">
-                  <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
-                  <p className="text-xs text-white/80">{category.productCount} products</p>
-                </div>
-              </Link>
+                <Link
+                  href={`/category/${category.id}`}
+                  className="group relative block w-40 sm:w-48 md:w-56 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all"
+                >
+                  <ImageWithFallback
+                    src={category.image}
+                    alt={category.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 text-white">
+                    <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
+                    <p className="text-xs text-white/80">{category.productCount} products</p>
+                  </div>
+                </Link>
               </motion.div>
             ))}
             <div className="w-20 md:w-24 flex-shrink-0" />
@@ -346,7 +346,7 @@ export default function HomePage() {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {displayProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
