@@ -9,7 +9,9 @@ import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import FloatingCart from '../components/FloatingCart';
 import MobileBottomNav from '../components/MobileBottomNav';
-import { products as allProducts, categories } from '../data/products';
+// import { products as allProducts, categories } from '../data/products';
+import { useProducts } from '../hooks/useProducts';
+import { useCategories } from '../hooks/useCategories';
 import { productImages, categoryImages, heroImages } from '../data/imageMapping';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { useHydrated } from '../hooks/useHydrated';
@@ -21,19 +23,18 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<string>('featured');
   const [isStickyVisible, setIsStickyVisible] = useState(false);
 
-  // Map images to products and categories
-  const productsWithImages = allProducts.map(p => ({
-    ...p,
-    image: productImages[p.id as keyof typeof productImages] || heroImages[0],
-  }));
+  // ✅ API hooks
+  const { data: productsData, isLoading: productsLoading } = useProducts();
+  const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
+  console.log('Products:', productsData);
+  console.log('Categories:', categoriesData);
 
-  const categoriesWithImages = categories.map(c => ({
-    ...c,
-    image: categoryImages[c.id as keyof typeof categoryImages] || heroImages[0],
-  }));
+  const allProducts = productsData || [];
+  const categories = categoriesData || [];
+  const categoriesWithImages = categories || [];
 
   // Filter and sort products
-  let displayProducts = [...productsWithImages];
+  let displayProducts = [...allProducts];
 
   if (selectedCategory !== 'all') {
     const category = categories.find(c => c.id === selectedCategory);
