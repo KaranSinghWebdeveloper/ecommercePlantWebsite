@@ -1,63 +1,63 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import FloatingCart from '../components/FloatingCart';
 import MobileBottomNav from '../components/MobileBottomNav';
-// import { products as allProducts, categories } from '../data/products';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
-import { productImages, categoryImages, heroImages } from '../data/imageMapping';
+import { heroImages } from '../data/imageMapping';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { useHydrated } from '../hooks/useHydrated';
+import type { ApiProduct } from '../lib/api/products';
+import type { ApiCategory } from '../lib/api/categories';
 
 export default function HomePage() {
   const hydrated = useHydrated();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('featured');
-  const [isStickyVisible, setIsStickyVisible] = useState(false);
 
-  // ✅ API hooks
-  const { data: productsData, isLoading: productsLoading } = useProducts();
-  const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
-  console.log('Products:', productsData);
-  console.log('Categories:', categoriesData);
+  // ✅ API hooks — data is already unwrapped from the envelope
+  const {
+    data: allProducts = [],
+    isLoading: productsLoading,
+    isError: productsError,
+  } = useProducts();
 
-  const allProducts = productsData || [];
-  const categories = categoriesData || [];
-  const categoriesWithImages = categories || [];
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+  } = useCategories();
 
-  // Filter and sort products
-  let displayProducts = [...allProducts];
+  // Filter products by selected category (category is an object { id, name, slug } from API)
+  const displayProducts = useMemo(() => {
+    let filtered: ApiProduct[] = [...allProducts];
 
-  if (selectedCategory !== 'all') {
-    const category = categories.find(c => c.id === selectedCategory);
-    if (category) {
-      displayProducts = displayProducts.filter(p => p.category === category.name);
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(
+        (p) => String(p.category?.id) === selectedCategory || p.category?.slug === selectedCategory
+      );
     }
-  }
 
-  // Sort products
-  switch (sortBy) {
-    case 'price-low':
-      displayProducts.sort((a, b) => a.price - b.price);
-      break;
-    case 'price-high':
-      displayProducts.sort((a, b) => b.price - a.price);
-      break;
-    case 'bestsellers':
-      displayProducts = displayProducts.filter(p => p.bestSeller);
-      break;
-    case 'new':
-      displayProducts = displayProducts.filter(p => p.newArrival);
-      break;
-  }
+    switch (sortBy) {
+      case 'price-low':
+        return [...filtered].sort((a, b) => a.price - b.price);
+      case 'price-high':
+        return [...filtered].sort((a, b) => b.price - a.price);
+      case 'bestsellers':
+        return filtered.filter((p) => p.bestSeller);
+      case 'new':
+        return filtered.filter((p) => p.newArrival);
+      default:
+        return filtered;
+    }
+  }, [allProducts, selectedCategory, sortBy]);
 
   // Hero carousel auto-play
   useEffect(() => {
@@ -67,27 +67,8 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Handle sticky categories visibility on mobile
-  useEffect(() => {
-    const handleScroll = () => {
-      const categoriesSection = document.getElementById('categories');
-      if (!categoriesSection) return;
-
-      const rect = categoriesSection.getBoundingClientRect();
-      setIsStickyVisible(rect.top < 100);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length);
-  };
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length);
 
   const heroContent = [
     {
@@ -127,6 +108,8 @@ export default function HomePage() {
       image: '👩',
     },
   ];
+
+  const activeCategory = categories.find((c: ApiCategory) => c.id === selectedCategory || c.slug === selectedCategory);
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
@@ -228,38 +211,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Sticky Mobile Categories Bar */}
-      {/* <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border transition-all duration-300 shadow-sm"
-        style={{ transform: isStickyVisible ? 'translateY(0)' : 'translateY(-100%)' }}>
-        <div className="overflow-x-auto scrollbar-hide">
-          <div className="flex gap-2 px-3 py-2 w-max">
-            <motion.button
-              onClick={() => {
-                setSelectedCategory('all');
-                document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${selectedCategory === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground hover:bg-muted/80'
-                }`}
-            >
-              All
-            </motion.button>
-            {categoriesWithImages.slice(0, 6).map((category) => (
-              <motion.button
-                key={category.id}
-                onClick={() => {
-                  setSelectedCategory(category.id);
-                  document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${selectedCategory === category.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground hover:bg-muted/80'
-                  }`}
-              >
-                {category.name.split(' ')[0]}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </div> */}
-
       {/* Categories Section */}
       <section id="categories" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto mb-8 md:mb-10">
@@ -275,30 +226,42 @@ export default function HomePage() {
 
         <div className="overflow-x-auto scrollbar-hide scroll-smooth">
           <div className="flex gap-3 md:gap-4 pb-2 px-4 sm:px-6 lg:px-8 w-max">
-            {categoriesWithImages.map((category, index) => (
-              <motion.div
-                key={category.id}
-                initial={false}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Link
-                  href={`/category/${category.id}`}
-                  className="group relative block w-24 sm:w-32 md:w-40 lg:w-48 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all"
+            {categoriesLoading ? (
+              // Skeleton loaders for categories
+              Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-24 sm:w-32 md:w-40 lg:w-48 flex-shrink-0 aspect-square rounded-2xl bg-muted animate-pulse"
+                />
+              ))
+            ) : (
+              categories.map((category: ApiCategory, index: number) => (
+                <motion.div
+                  key={category.id}
+                  initial={false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  <ImageWithFallback
-                    src={category.image}
-                    alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 text-white">
-                    <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
-                    <p className="text-xs text-white/80">{category.productCount} products</p>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+                  <Link
+                    href={`/category/${category.slug}`}
+                    className="group relative block w-24 sm:w-32 md:w-40 lg:w-48 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all"
+                  >
+                    <ImageWithFallback
+                      src={category.imageUrl || ''}
+                      alt={category.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 text-white">
+                      <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
+                      {category.productCount !== undefined && (
+                        <p className="text-xs text-white/80">{category.productCount} products</p>
+                      )}
+                    </div>
+                  </Link>
+                </motion.div>
+              ))
+            )}
             <div className="w-20 md:w-24 flex-shrink-0" />
           </div>
         </div>
@@ -312,7 +275,7 @@ export default function HomePage() {
               Featured Plants
             </h2>
             <p className="text-xs md:text-base text-muted-foreground">
-              {selectedCategory === 'all' ? 'All Products' : categories.find(c => c.id === selectedCategory)?.name}
+              {selectedCategory === 'all' ? 'All Products' : activeCategory?.name ?? ''}
             </p>
           </div>
 
@@ -324,7 +287,7 @@ export default function HomePage() {
               className="px-3 md:px-4 py-2 rounded-lg border border-input bg-input-background focus:outline-none focus:ring-2 focus:ring-primary text-sm"
             >
               <option value="all">All Categories</option>
-              {categories.map((cat) => (
+              {categories.map((cat: ApiCategory) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>
@@ -346,17 +309,38 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {displayProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-
-        {displayProducts.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">No products found in this category.</p>
+        {/* Loading State */}
+        {productsLoading && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-2xl bg-muted animate-pulse aspect-[3/4]" />
+            ))}
           </div>
+        )}
+
+        {/* Error State */}
+        {productsError && !productsLoading && (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <AlertCircle className="w-12 h-12 text-destructive" />
+            <p className="text-muted-foreground text-lg">Failed to load products. Please try again.</p>
+          </div>
+        )}
+
+        {/* Product Grid */}
+        {!productsLoading && !productsError && (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+              {displayProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {displayProducts.length === 0 && (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground text-lg">No products found in this category.</p>
+              </div>
+            )}
+          </>
         )}
       </section>
 

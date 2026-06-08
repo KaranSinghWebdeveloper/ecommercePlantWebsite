@@ -1,7 +1,12 @@
 const categoryRepository = require('./category.repository');
 
 const getCategories = async () => {
-  return await categoryRepository.getCategories();
+  const categories = await categoryRepository.getCategories();
+  // Map Prisma _count to a clean productCount field
+  return categories.map(({ _count, ...cat }) => ({
+    ...cat,
+    productCount: _count?.products ?? 0,
+  }));
 };
 
 const getCategoryBySlug = async (slug) => {

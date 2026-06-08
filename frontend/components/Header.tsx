@@ -2,28 +2,22 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Search, ShoppingCart, Heart, Menu, X, MapPin, User, Leaf } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { Search, ShoppingCart, Heart, Menu, X, MapPin, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { categories } from '../data/products';
+import { useCategories } from '../hooks/useCategories';
+import type { ApiCategory } from '../lib/api/categories';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { getCartCount, wishlist, isHydrated } = useCart();
   const router = useRouter();
+  const pathname = usePathname();
 
-  const menuItems = [
-    { label: 'Home', path: '/' },
-    { label: 'Indoor Plants', path: '/#indoor' },
-    { label: 'Outdoor Plants', path: '/#outdoor' },
-    { label: 'Small Plants', path: '/#small' },
-    { label: 'Large Plants', path: '/#large' },
-    { label: 'Pots & Accessories', path: '/#accessories' },
-    { label: 'Best Sellers', path: '/#bestsellers' },
-    { label: 'Offers', path: '/#offers' },
-  ];
+  // ✅ Dynamic categories from API
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +26,8 @@ export default function Header() {
     else router.push('/search');
     setMobileMenuOpen(false);
   };
+
+  const isActive = (slug: string) => pathname === `/category/${slug}`;
 
   return (
     <>
@@ -45,10 +41,8 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="">
-                {/* <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"> */}
-                {/* <Leaf className="w-6 h-6 text-white" /> */}
+            <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
+              <div>
                 <img src="/HarYali.png" alt="HarYali Logo" width="70" />
               </div>
               <div className="hidden sm:block">
@@ -86,7 +80,7 @@ export default function Header() {
             </form>
 
             {/* Right Icons */}
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
               {/* Location */}
               <button className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors">
                 <MapPin className="w-5 h-5 text-primary" />
@@ -135,33 +129,63 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Navigation - Desktop - Dynamic Categories */}
-          <nav className="hidden md:flex items-center gap-4 pb-3 overflow-x-auto scrollbar-hide scroll-smooth">
-            <Link href="/" className="px-3 py-1 bg-muted text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground rounded-full transition-colors whitespace-nowrap">
-              Home
+          {/* Navigation - Desktop - Dynamic Categories from API */}
+          <nav className="hidden md:flex items-center gap-1 pb-3 overflow-x-auto scrollbar-hide scroll-smooth">
+            <Link
+              href="/"
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                pathname === '/'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-foreground hover:bg-primary hover:text-primary-foreground bg-muted'
+              }`}
+            >
+              All Plants
             </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/category/${cat.id}`}
-                className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap"
-              >
-                {cat.name}
-              </Link>
-            ))}
+
+            {categoriesLoading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1.5 rounded-full bg-muted animate-pulse w-20 h-6 inline-block"
+                  />
+                ))
+              : (categories as ApiCategory[]).map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/category/${cat.slug}`}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                      isActive(cat.slug)
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-foreground hover:bg-primary/10 hover:text-primary'
+                    }`}
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
           </nav>
 
-          {/* Navigation - Mobile - Dynamic Categories */}
+          {/* Navigation - Mobile horizontal scroll */}
           <div className="md:hidden overflow-x-auto scrollbar-hide scroll-smooth">
-            <nav className="flex items-center gap-3 pb-3">
-              <Link href="/" className="px-3 py-1 bg-muted text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground rounded-full transition-colors whitespace-nowrap">
-                Home
+            <nav className="flex items-center gap-2 pb-3">
+              <Link
+                href="/"
+                className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+                  pathname === '/'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-foreground hover:bg-primary hover:text-primary-foreground'
+                }`}
+              >
+                All
               </Link>
-              {categories.map((cat) => (
+              {(categories as ApiCategory[]).map((cat) => (
                 <Link
                   key={cat.id}
-                  href={`/category/${cat.id}`}
-                  className="px-3 py-1 bg-muted text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground rounded-full transition-colors whitespace-nowrap"
+                  href={`/category/${cat.slug}`}
+                  className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+                    isActive(cat.slug)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-foreground hover:bg-primary hover:text-primary-foreground'
+                  }`}
                 >
                   {cat.name}
                 </Link>
@@ -171,7 +195,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Mobile Menu */}
+      {/* Mobile Full-Screen Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
@@ -194,7 +218,7 @@ export default function Header() {
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-lg font-semibold">Menu</h2>
+                  <h2 className="text-lg font-semibold">Browse Categories</h2>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="p-2 rounded-lg hover:bg-muted"
@@ -203,17 +227,35 @@ export default function Header() {
                   </button>
                 </div>
 
-                <nav className="flex flex-col gap-2">
-                  {menuItems.map((item) => (
-                    <Link
-                      key={item.path}
-                      href={item.path}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="px-4 py-3 rounded-lg hover:bg-muted transition-colors"
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
+                <nav className="flex flex-col gap-1">
+                  <Link
+                    href="/"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`px-4 py-3 rounded-lg transition-colors font-medium ${
+                      pathname === '/' ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+                    }`}
+                  >
+                    🌿 All Plants
+                  </Link>
+
+                  {categoriesLoading
+                    ? Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="h-12 rounded-lg bg-muted animate-pulse" />
+                      ))
+                    : (categories as ApiCategory[]).map((cat) => (
+                        <Link
+                          key={cat.id}
+                          href={`/category/${cat.slug}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`px-4 py-3 rounded-lg transition-colors ${
+                            isActive(cat.slug)
+                              ? 'bg-primary/10 text-primary font-medium'
+                              : 'hover:bg-muted'
+                          }`}
+                        >
+                          {cat.name}
+                        </Link>
+                      ))}
                 </nav>
 
                 <div className="mt-8 pt-8 border-t border-border">
