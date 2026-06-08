@@ -22,6 +22,12 @@ const searchRoutes = require('./modules/search/search.route');
 const deliveryRoutes = require('./modules/delivery/delivery.route');
 const bannerRoutes = require('./modules/banner/banner.route');
 
+// New Order & Cart Routes
+const cartRoutes = require('./modules/cart/cart.route');
+const checkoutRoutes = require('./modules/checkout/checkout.route');
+const orderRoutes = require('./modules/order/order.route');
+const adminOrderRoutes = require('./modules/admin/order/admin-order.route');
+
 // API Endpoints
 app.use('/api/home', homeRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -29,6 +35,11 @@ app.use('/api/products', productRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/banners', bannerRoutes);
+
+app.use('/api/cart', cartRoutes);
+app.use('/api/checkout', checkoutRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/admin/orders', adminOrderRoutes);
 
 // Error Handling
 app.use(notFoundHandler);

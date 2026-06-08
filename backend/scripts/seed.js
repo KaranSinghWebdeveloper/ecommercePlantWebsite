@@ -200,6 +200,26 @@ async function run() {
             }
         }
 
+        // Upsert delivery points
+        const deliveryPoints = [
+            { name: 'Connaught Place', city: 'New Delhi', pincode: '110001', deliveryCharge: 50, minOrderForFreeDelivery: 1000 },
+            { name: 'Dwarka', city: 'New Delhi', pincode: '110075', deliveryCharge: 60, minOrderForFreeDelivery: 1000 },
+            { name: 'Rohini', city: 'New Delhi', pincode: '110085', deliveryCharge: 70, minOrderForFreeDelivery: 1000 },
+            { name: 'Saket', city: 'New Delhi', pincode: '110017', deliveryCharge: 50, minOrderForFreeDelivery: 1000 },
+            { name: 'Vasant Kunj', city: 'New Delhi', pincode: '110070', deliveryCharge: 50, minOrderForFreeDelivery: 1000 },
+            { name: 'Gurgaon Sector 14', city: 'Gurgaon', pincode: '122001', deliveryCharge: 80, minOrderForFreeDelivery: 1000 },
+            { name: 'Noida Sector 18', city: 'Noida', pincode: '201301', deliveryCharge: 80, minOrderForFreeDelivery: 1000 }
+        ];
+
+        for (const dp of deliveryPoints) {
+            await prisma.deliveryPoint.upsert({
+                where: { pincode: dp.pincode },
+                update: dp,
+                create: dp
+            });
+        }
+        console.log(`Seeded ${deliveryPoints.length} delivery points`);
+
         console.log('Seeding complete.');
     } catch (err) {
         console.error('Seeder error:', err);

@@ -156,3 +156,136 @@ model DeliveryPincode {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?
+  phone     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addresses CustomerAddress[]
+  orders    Order[]
+  carts     Cart[]
+}
+
+model CustomerAddress {
+  id           Int      @id @default(autoincrement())
+  customerId   Int
+  fullName     String
+  phone        String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  pincode      String
+  landmark     String?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+model DeliveryPoint {
+  id                       Int      @id @default(autoincrement())
+  name                     String
+  city                     String
+  pincode                  String   @unique
+  deliveryCharge           Decimal  @default(0) @db.Decimal(10, 2)
+  minOrderForFreeDelivery Decimal  @default(1000) @db.Decimal(10, 2)
+  isActive                 Boolean  @default(true)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  orders Order[]
+}
+
+model Cart {
+  id         Int      @id @default(autoincrement())
+  customerId Int?
+  sessionId  String?  @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  customer Customer?  @relation(fields: [customerId], references: [id])
+  items    CartItem[]
+}
+
+model CartItem {
+  id          Int      @id @default(autoincrement())
+  cartId      Int
+  productId   Int
+  quantity    Int      @default(1)
+  priceAtTime Decimal? @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id                  Int      @id @default(autoincrement())
+  orderNumber         String   @unique
+  customerId          Int
+  customerName        String
+  customerPhone       String
+  customerEmail       String?
+  addressId           Int?
+  deliveryAddressText String   @db.Text
+  deliveryPointId     Int?
+  paymentMethod       String   @default("COD") // COD, ONLINE
+  paymentStatus       String   @default("pending") // pending, paid, failed
+  orderStatus         String   @default("pending") // pending, confirmed, packed, out_for_delivery, delivered, cancelled
+  
+  razorpayOrderId     String?
+  razorpayPaymentId   String?
+
+  subtotal            Decimal  @db.Decimal(10, 2)
+  deliveryCharge      Decimal  @db.Decimal(10, 2)
+  discountAmount      Decimal  @default(0) @db.Decimal(10, 2)
+  totalAmount         Decimal  @db.Decimal(10, 2)
+  freeDeliveryApplied Boolean  @default(false)
+  
+  customerNote        String?  @db.Text
+  adminNote           String?  @db.Text
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  customer      Customer        @relation(fields: [customerId], references: [id])
+  deliveryPoint DeliveryPoint?  @relation(fields: [deliveryPointId], references: [id])
+  items         OrderItem[]
+  statusLogs    OrderStatusLog[]
+
+  @@index([customerPhone])
+  @@index([orderStatus])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id           Int      @id @default(autoincrement())
+  orderId      Int
+  productId    Int
+  productName  String
+  productImage String?
+  quantity     Int
+  unitPrice    Decimal  @db.Decimal(10, 2)
+  totalPrice   Decimal  @db.Decimal(10, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model OrderStatusLog {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  oldStatus String?
+  newStatus String
+  note      String?  @db.Text
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
