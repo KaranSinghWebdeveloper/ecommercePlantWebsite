@@ -92,7 +92,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
       </head>
-      <body className={`min-h-full flex flex-col font-sans`}>
+      <body suppressHydrationWarning className={`min-h-full flex flex-col font-sans`}>
         <Providers>{children}</Providers>
       </body>
     </html>

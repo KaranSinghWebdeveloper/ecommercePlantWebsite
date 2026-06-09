@@ -11,6 +11,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Admin User ───────────────────────────────────────────────────────────────
+model AdminUser {
+  id               Int       @id @default(autoincrement())
+  name             String
+  email            String    @unique
+  password         String
+  role             String    @default("admin")
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+  isActive         Boolean   @default(true)
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([email])
+}
+
+// ─── Customer OTP ─────────────────────────────────────────────────────────────
+model CustomerOtp {
+  id        Int      @id @default(autoincrement())
+  email     String
+  otp       String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
 model Category {
   id             Int      @id @default(autoincrement())
   name           String
@@ -159,9 +188,9 @@ model DeliveryPincode {
 
 model Customer {
   id        Int      @id @default(autoincrement())
-  name      String
-  email     String?
-  phone     String   @unique
+  name      String   @default("")
+  email     String   @unique
+  phone     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

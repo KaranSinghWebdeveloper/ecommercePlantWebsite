@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, ShoppingCart, Heart, Menu, X, MapPin, User } from 'lucide-react';
+import { Search, ShoppingCart, Heart, Menu, X, MapPin, User, LogOut, Package, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCategories } from '../hooks/useCategories';
 import type { ApiCategory } from '../lib/api/categories';
@@ -12,9 +13,23 @@ import type { ApiCategory } from '../lib/api/categories';
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
   const { getCartCount, wishlist, isHydrated } = useCart();
+  const { customer, isAuthenticated, logout } = useCustomerAuth();
   const router = useRouter();
   const pathname = usePathname();
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   // ✅ Dynamic categories from API
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
@@ -110,10 +125,84 @@ export default function Header() {
                 )}
               </button>
 
-              {/* User */}
-              <button className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors">
-                <User className="w-5 h-5 text-foreground" />
-              </button>
+              {/* User Profile */}
+              <div ref={profileRef} className="relative hidden md:block">
+                <button
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                >
+                  {isAuthenticated ? (
+                    <>
+                      <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
+                        {customer?.name?.[0]?.toUpperCase() || 'C'}
+                      </div>
+                      <span className="text-sm font-medium hidden lg:block max-w-20 truncate">{customer?.name?.split(' ')[0]}</span>
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    </>
+                  ) : (
+                    <User className="w-5 h-5 text-foreground" />
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {profileDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      className="absolute right-0 top-full mt-2 w-52 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50"
+                    >
+                      {isAuthenticated ? (
+                        <>
+                          <div className="px-4 py-3 border-b border-border bg-muted/50">
+                            <p className="font-semibold text-sm text-foreground truncate">{customer?.name}</p>
+                            <p className="text-xs text-muted-foreground">{customer?.phone}</p>
+                          </div>
+                          <Link
+                            href="/profile"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors text-sm"
+                          >
+                            <User className="w-4 h-4 text-muted-foreground" />
+                            My Profile
+                          </Link>
+                          <Link
+                            href="/profile?tab=orders"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors text-sm"
+                          >
+                            <Package className="w-4 h-4 text-muted-foreground" />
+                            My Orders
+                          </Link>
+                          <button
+                            onClick={() => { logout(); setProfileDropdownOpen(false); }}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-destructive transition-colors text-sm border-t border-border"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            Sign Out
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <Link
+                            href="/profile"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="flex items-center gap-3 px-4 py-4 hover:bg-muted transition-colors"
+                          >
+                            <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center">
+                              <User className="w-5 h-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-sm">Sign In</p>
+                              <p className="text-xs text-muted-foreground">View orders & profile</p>
+                            </div>
+                          </Link>
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Mobile Menu Toggle */}
               <button
@@ -258,15 +347,47 @@ export default function Header() {
                       ))}
                 </nav>
 
-                <div className="mt-8 pt-8 border-t border-border">
-                  <Link
-                    href="/admin"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    <User className="w-5 h-5" />
-                    <span>Login / Sign Up</span>
-                  </Link>
+                <div className="mt-8 pt-8 border-t border-border space-y-1">
+                  {isAuthenticated ? (
+                    <>
+                      <div className="px-4 py-2 mb-1">
+                        <p className="font-semibold text-sm">{customer?.name}</p>
+                        <p className="text-xs text-muted-foreground">{customer?.phone}</p>
+                      </div>
+                      <Link
+                        href="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                      >
+                        <User className="w-5 h-5" />
+                        <span>My Profile</span>
+                      </Link>
+                      <Link
+                        href="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                      >
+                        <Package className="w-5 h-5" />
+                        <span>My Orders</span>
+                      </Link>
+                      <button
+                        onClick={() => { logout(); setMobileMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 text-destructive transition-colors"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        <span>Sign Out</span>
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Login / Sign Up</span>
+                    </Link>
+                  )}
                 </div>
               </div>
             </motion.div>

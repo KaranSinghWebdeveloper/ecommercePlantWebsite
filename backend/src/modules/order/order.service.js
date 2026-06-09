@@ -63,10 +63,18 @@ const createOrder = async (sessionId, orderData) => {
   // Run in transaction
   const localOrder = await prisma.$transaction(async (tx) => {
     // 2. Create or find Customer
-    let customer = await tx.customer.findUnique({ where: { phone: customerPhone } });
+    let customer;
+    if (customerEmail) {
+      customer = await tx.customer.findUnique({ where: { email: customerEmail } });
+    } else {
+      customer = await tx.customer.findFirst({ where: { phone: customerPhone } });
+    }
+
     if (!customer) {
+      // Use a placeholder email if customerEmail is missing to satisfy the unique constraint
+      const emailToUse = customerEmail || `${customerPhone}@no-email.haryali.com`;
       customer = await tx.customer.create({
-        data: { name: customerName, phone: customerPhone, email: customerEmail }
+        data: { name: customerName, phone: customerPhone, email: emailToUse }
       });
     }
 

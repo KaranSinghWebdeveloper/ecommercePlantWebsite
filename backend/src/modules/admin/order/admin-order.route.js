@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const adminOrderController = require('./admin-order.controller');
+const { adminAuthMiddleware } = require('../../../middleware/auth.middleware');
+
+router.use(adminAuthMiddleware);
 
 router.get('/', adminOrderController.getOrders);
 router.get('/:id', adminOrderController.getOrderById);

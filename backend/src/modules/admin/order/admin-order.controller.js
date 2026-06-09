@@ -2,13 +2,18 @@ const adminOrderService = require('./admin-order.service');
 
 const getOrders = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, status, search } = req.query;
+    const { page = 1, limit = 20, status, search } = req.query;
     const result = await adminOrderService.getOrders(parseInt(page), parseInt(limit), status, search);
-    res.status(200).json({ success: true, data: result });
+    res.status(200).json({
+      success: true,
+      data: result.orders,
+      meta: result.pagination,
+    });
   } catch (error) {
     next(error);
   }
 };
+
 
 const getOrderById = async (req, res, next) => {
   try {
