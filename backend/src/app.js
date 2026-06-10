@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 const { errorHandler, notFoundHandler } = require('./middleware/error.middleware');
 
 const app = express();
@@ -13,6 +14,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Serve uploaded images as static files
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // ─── Public Storefront Routes ─────────────────────────────────────────────────
 const homeRoutes = require('./modules/home/home.route');
@@ -31,6 +35,7 @@ const adminOrderRoutes = require('./modules/admin/order/admin-order.route');
 const adminCategoryRoutes = require('./modules/admin/category/admin-category.route');
 const adminProductRoutes = require('./modules/admin/product/admin-product.route');
 const adminSharedRoutes = require('./modules/admin/shared/admin-shared.route');
+const adminUploadRoutes = require('./modules/admin/shared/admin-upload.route');
 
 // ─── Customer Routes ──────────────────────────────────────────────────────────
 const customerRoutes = require('./modules/customer/customer.route');
@@ -51,6 +56,7 @@ app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin/orders', adminOrderRoutes);
 app.use('/api/admin/categories', adminCategoryRoutes);
 app.use('/api/admin/products', adminProductRoutes);
+app.use('/api/admin/upload', adminUploadRoutes); // image upload endpoint
 app.use('/api/admin', adminSharedRoutes); // dashboard/stats, banners, delivery/areas, customers
 
 // ─── Customer API Endpoints ───────────────────────────────────────────────────

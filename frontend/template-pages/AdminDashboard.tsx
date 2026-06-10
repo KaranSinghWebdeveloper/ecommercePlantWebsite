@@ -12,6 +12,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useAdminAuth, useAdminApi } from '../context/AdminAuthContext';
 import { toast } from 'sonner';
+import ImageUploadWithCrop from '../components/ImageUploadWithCrop';
 
 type Tab = 'dashboard' | 'products' | 'orders' | 'categories' | 'banners' | 'delivery' | 'customers';
 
@@ -263,6 +264,10 @@ function DashboardTab({ adminFetch }: { adminFetch: any }) {
   );
 }
 
+// ─── SLUG HELPER ─────────────────────────────────────────────────────────────
+const toSlug = (str: string) =>
+  str.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
 // ─── CATEGORIES TAB ───────────────────────────────────────────────────────────
 function CategoriesTab({ adminFetch }: { adminFetch: any }) {
   const [categories, setCategories] = useState<any[]>([]);
@@ -358,9 +363,35 @@ function CategoriesTab({ adminFetch }: { adminFetch: any }) {
       {/* Category Form Modal */}
       <Modal open={showForm} onClose={() => setShowForm(false)} title={editItem ? 'Edit Category' : 'New Category'}>
         <div className="space-y-4">
-          <FormField label="Name *" value={form.name} onChange={(v) => setForm(f => ({ ...f, name: v }))} placeholder="e.g. Indoor Plants" />
-          <FormField label="Slug" value={form.slug} onChange={(v) => setForm(f => ({ ...f, slug: v }))} placeholder="auto-generated if empty" />
-          <FormField label="Image URL" value={form.imageUrl} onChange={(v) => setForm(f => ({ ...f, imageUrl: v }))} placeholder="https://..." />
+          <FormField
+            label="Name *"
+            value={form.name}
+            onChange={(v) => setForm(f => ({
+              ...f,
+              name: v,
+              // auto-generate slug only when adding (not editing an existing category)
+              slug: !editItem ? toSlug(v) : f.slug,
+            }))}
+            placeholder="e.g. Indoor Plants"
+          />
+          <div>
+            <FormField
+              label="Slug"
+              value={form.slug}
+              onChange={(v) => setForm(f => ({ ...f, slug: toSlug(v) }))}
+              placeholder="auto-generated from name"
+            />
+            {form.slug && (
+              <p className="mt-1 text-xs text-gray-400">Preview: <span className="font-mono text-green-600">{form.slug}</span></p>
+            )}
+          </div>
+          <ImageUploadWithCrop
+            label="Category Image"
+            value={form.imageUrl}
+            onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))}
+            type="category"
+            adminFetch={adminFetch}
+          />
           <FormField label="Description" value={form.description} onChange={(v) => setForm(f => ({ ...f, description: v }))} multiline />
           <SelectField label="Status" value={form.status} onChange={(v) => setForm(f => ({ ...f, status: v }))} options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} />
         </div>
@@ -574,8 +605,13 @@ function ProductsTab({ adminFetch }: { adminFetch: any }) {
           <SelectField label="Stock Status" value={form.stockStatus} onChange={(v) => setForm((f: any) => ({ ...f, stockStatus: v }))}
             options={[{ value: 'in_stock', label: 'In Stock' }, { value: 'low_stock', label: 'Low Stock' }, { value: 'out_of_stock', label: 'Out of Stock' }]} />
           <div className="sm:col-span-2">
-            <FormField label="Primary Image URL" value={form.imageUrl} onChange={(v) => setForm((f: any) => ({ ...f, imageUrl: v }))} placeholder="https://..." />
-            {form.imageUrl && <img src={form.imageUrl} alt="preview" className="mt-2 h-24 w-24 object-cover rounded-xl border" />}
+            <ImageUploadWithCrop
+              label="Primary Image"
+              value={form.imageUrl}
+              onChange={(url) => setForm((f: any) => ({ ...f, imageUrl: url }))}
+              type="product"
+              adminFetch={adminFetch}
+            />
           </div>
           <div className="sm:col-span-2">
             <FormField label="Short Description" value={form.shortDescription} onChange={(v) => setForm((f: any) => ({ ...f, shortDescription: v }))} multiline placeholder="Brief product description" />
@@ -789,8 +825,13 @@ function BannersTab({ adminFetch }: { adminFetch: any }) {
         <div className="space-y-4">
           <FormField label="Title *" value={form.title} onChange={(v) => setForm(f => ({ ...f, title: v }))} />
           <FormField label="Subtitle" value={form.subtitle} onChange={(v) => setForm(f => ({ ...f, subtitle: v }))} />
-          <FormField label="Image URL *" value={form.imageUrl} onChange={(v) => setForm(f => ({ ...f, imageUrl: v }))} placeholder="https://..." />
-          {form.imageUrl && <img src={form.imageUrl} alt="" className="w-full h-32 object-cover rounded-xl border" />}
+          <ImageUploadWithCrop
+            label="Banner Image *"
+            value={form.imageUrl}
+            onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))}
+            type="banner"
+            adminFetch={adminFetch}
+          />
           <FormField label="Link" value={form.link} onChange={(v) => setForm(f => ({ ...f, link: v }))} placeholder="/category/indoor-plants" />
           <FormField label="Sort Order" value={form.sortOrder} onChange={(v) => setForm(f => ({ ...f, sortOrder: v }))} type="number" />
           <SelectField label="Status" value={form.status} onChange={(v) => setForm(f => ({ ...f, status: v }))} options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} />

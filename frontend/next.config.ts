@@ -18,6 +18,18 @@ const nextConfig: NextConfig = {
         hostname: "**.cloudinary.com",
         pathname: "/**",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "http",
+        hostname: "192.168.0.6",
+        port: "5000",
+        pathname: "/uploads/**",
+      },
     ],
     // Image optimization for better Core Web Vitals
     formats: ["image/avif", "image/webp"],

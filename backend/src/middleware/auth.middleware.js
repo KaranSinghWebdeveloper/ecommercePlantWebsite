@@ -26,7 +26,7 @@ const adminAuthMiddleware = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_ADMIN_SECRET || process.env.JWT_SECRET);
 
-    if (!decoded || decoded.role !== 'admin') {
+    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'super_admin')) {
       return errorResponse(res, 403, 'Forbidden: Admin access only');
     }
 

@@ -187,8 +187,8 @@ export default function AdminLoginPage() {
           {/* Default credentials hint */}
           <div className="mt-6 p-4 bg-green-900/40 border border-green-700/30 rounded-xl">
             <p className="text-xs text-green-400 text-center">
-              Default: <span className="font-mono text-green-300">admin@haryali.com</span> /
-              <span className="font-mono text-green-300"> admin123</span>
+              Login: <span className="font-mono text-green-300">admin@haryali.com</span> /
+              <span className="font-mono text-green-300"> Admin@123</span>
             </p>
           </div>
 
