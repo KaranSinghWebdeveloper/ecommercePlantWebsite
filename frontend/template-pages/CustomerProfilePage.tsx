@@ -17,7 +17,7 @@ type ProfileTab = 'details' | 'orders' | 'addresses';
 export default function ProfilePage() {
   const { customer, isAuthenticated, isLoading, logout } = useCustomerAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<ProfileTab>('details');
+  const [activeTab, setActiveTab] = useState<ProfileTab>('orders');
   const router = useRouter();
 
   useEffect(() => {
@@ -97,8 +97,8 @@ export default function ProfilePage() {
             {/* Tabs */}
             <div className="flex gap-1 bg-card border border-border rounded-xl p-1 mb-6">
               {([
-                { id: 'details', label: 'My Details', icon: User },
                 { id: 'orders', label: 'My Orders', icon: Package },
+                { id: 'details', label: 'My Details', icon: User },
                 { id: 'addresses', label: 'Addresses', icon: MapPin },
               ] as { id: ProfileTab; label: string; icon: any }[]).map(({ id, label, icon: Icon }) => (
                 <button
@@ -234,7 +234,14 @@ function OrdersTab() {
   const load = useCallback(() => {
     setLoading(true);
     customerFetch(`/customer/orders?page=${page}&limit=8`)
-      .then((d: any) => { setOrders(d.data || []); setMeta(d.meta || {}); })
+      .then((d: any) => { 
+        const fetchedOrders = d.data || [];
+        setOrders(fetchedOrders); 
+        setMeta(d.meta || {}); 
+        if (fetchedOrders.length > 0 && page === 1) {
+          setExpandedOrder(fetchedOrders[0].id);
+        }
+      })
       .catch(() => toast.error('Failed to load orders'))
       .finally(() => setLoading(false));
   }, [customerFetch, page]);

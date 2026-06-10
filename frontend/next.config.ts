@@ -30,6 +30,12 @@ const nextConfig: NextConfig = {
         port: "5000",
         pathname: "/uploads/**",
       },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "5000",
+        pathname: "/uploads/**",
+      },
     ],
     // Image optimization for better Core Web Vitals
     formats: ["image/avif", "image/webp"],

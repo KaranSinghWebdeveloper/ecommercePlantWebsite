@@ -65,7 +65,7 @@ const customerAuthMiddleware = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_CUSTOMER_SECRET || process.env.JWT_SECRET);
 
-    if (!decoded || decoded.type !== 'customer') {
+    if (!decoded || decoded.role !== 'customer') {
       return errorResponse(res, 403, 'Forbidden: Customer access only');
     }
 

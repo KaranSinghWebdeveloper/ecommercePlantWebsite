@@ -26,6 +26,8 @@ export function ImageWithFallback(props: React.ComponentProps<typeof Image>) {
     );
   }
 
+  const isLocal = source.includes('localhost') || source.includes('127.0.0.1') || source.includes('192.168.');
+
   return (
     <div className="relative w-full h-full">
       <Image
@@ -37,6 +39,7 @@ export function ImageWithFallback(props: React.ComponentProps<typeof Image>) {
         className={className}
         style={style}
         onError={handleError}
+        unoptimized={isLocal || props.unoptimized}
         {...rest}
       />
     </div>

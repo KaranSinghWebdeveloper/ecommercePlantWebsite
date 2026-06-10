@@ -26,6 +26,7 @@ export function CategoryCard({ category, index }: CategoryCardProps) {
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-110"
           sizes="(max-width: 768px) 100vw, 25vw"
+          unoptimized={category.image.includes('localhost') || category.image.includes('127.0.0.1') || category.image.includes('192.168.')}
         />
 
         {/* Gradient Overlay */}

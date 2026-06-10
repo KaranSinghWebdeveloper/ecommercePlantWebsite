@@ -4,13 +4,21 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { useCart } from '../../context/CartContext';
-import { ShoppingCart, Truck, CreditCard, ChevronRight } from 'lucide-react';
-import { motion } from 'motion/react';
+import { useCustomerAuth } from '../../context/CustomerAuthContext';
+import { ShoppingCart, Truck, CreditCard, ChevronRight, User, Mail, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 
 export default function CheckoutPage() {
   const { cart, getCartTotal, clearCart } = useCart();
+  const { customer, isAuthenticated, isLoading: authLoading, sendOtp, verifyOtp, token } = useCustomerAuth();
   const router = useRouter();
+
+  const [authStep, setAuthStep] = useState<'AUTH' | 'CHECKOUT'>('AUTH');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authOtp, setAuthOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [authInProgress, setAuthInProgress] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -43,6 +51,53 @@ export default function CheckoutPage() {
       router.push('/');
     }
   }, [cart, router, loading, isProcessingPayment]);
+
+  // Handle Authentication state
+  useEffect(() => {
+    if (!authLoading) {
+      if (isAuthenticated && customer) {
+        setAuthStep('CHECKOUT');
+        setFormData(prev => ({
+          ...prev,
+          name: prev.name || customer.name || '',
+          email: prev.email || customer.email || '',
+          phone: prev.phone || customer.phone || ''
+        }));
+      } else {
+        setAuthStep('AUTH');
+      }
+    }
+  }, [isAuthenticated, customer, authLoading]);
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authEmail) return;
+    setAuthInProgress(true);
+    try {
+      await sendOtp(authEmail);
+      setOtpSent(true);
+      toast.success('OTP sent to your email');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send OTP');
+    } finally {
+      setAuthInProgress(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authEmail || !authOtp) return;
+    setAuthInProgress(true);
+    try {
+      await verifyOtp(authEmail, authOtp);
+      toast.success('Successfully verified!');
+      // Auth context effect will switch step to CHECKOUT
+    } catch (err: any) {
+      toast.error(err.message || 'Invalid OTP');
+    } finally {
+      setAuthInProgress(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -148,7 +203,11 @@ export default function CheckoutPage() {
       const sessionId = window.localStorage.getItem('plantShopSessionId');
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-session-id': sessionId || '' },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'x-session-id': sessionId || '',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({
           customerName: formData.name,
           customerPhone: formData.phone,
@@ -189,12 +248,105 @@ export default function CheckoutPage() {
 
   if (cart.length === 0) return null;
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center pt-24">
+        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // AUTHENTICATION STEP
+  if (authStep === 'AUTH') {
+    return (
+      <div className="min-h-screen bg-muted/30 pt-24 pb-16 flex items-center justify-center">
+        <div className="w-full max-w-md px-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card rounded-2xl p-8 shadow-lg border border-border"
+          >
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-primary">
+              <User className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-bold text-center mb-2">Welcome Back</h1>
+            <p className="text-muted-foreground text-center mb-8 text-sm">
+              Please verify your identity to proceed with the checkout.
+            </p>
+
+            {!otpSent ? (
+              <form onSubmit={handleSendOtp} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <input 
+                      type="email" 
+                      required 
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary" 
+                      placeholder="you@example.com" 
+                    />
+                  </div>
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={authInProgress}
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
+                >
+                  {authInProgress ? 'Sending...' : 'Send OTP'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div className="p-3 bg-primary/5 border border-primary/20 rounded-xl mb-4 flex items-center justify-between">
+                  <span className="text-sm font-medium">{authEmail}</span>
+                  <button type="button" onClick={() => setOtpSent(false)} className="text-xs text-primary hover:underline font-semibold">Change</button>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Enter OTP</label>
+                  <div className="relative">
+                    <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <input 
+                      type="text" 
+                      required 
+                      value={authOtp}
+                      onChange={(e) => setAuthOtp(e.target.value)}
+                      maxLength={6}
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary text-center tracking-[0.5em] font-mono text-lg" 
+                      placeholder="------" 
+                    />
+                  </div>
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={authInProgress || authOtp.length < 6}
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
+                >
+                  {authInProgress ? 'Verifying...' : 'Verify & Continue'}
+                </button>
+              </form>
+            )}
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  // CHECKOUT STEP
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <div className="min-h-screen bg-muted/30 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-6xl">
-          <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-3xl font-bold">Checkout</h1>
+            <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
+              <User className="w-4 h-4" />
+              <span>{customer?.name || customer?.email}</span>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column - Forms */}
