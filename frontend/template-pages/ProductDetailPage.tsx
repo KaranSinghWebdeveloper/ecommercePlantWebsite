@@ -242,7 +242,7 @@ export default function ProductDetailPage() {
               <p className="text-muted-foreground mb-6">{product.shortDescription}</p>
 
               {/* Rating */}
-              <div className="flex items-center gap-2 mb-6">
+              {/* <div className="flex items-center gap-2 mb-6">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -258,7 +258,7 @@ export default function ProductDetailPage() {
                 <span className="text-sm text-muted-foreground">
                   {Number(product.ratingAvg).toFixed(1)} ({product.reviewsCount} reviews)
                 </span>
-              </div>
+              </div> */}
 
               {/* Price */}
               <div className="flex items-center gap-4 mb-6">
@@ -392,11 +392,10 @@ export default function ProductDetailPage() {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`pb-4 font-medium capitalize transition-colors border-b-2 -mb-px ${
-                      activeTab === tab
-                        ? 'border-primary text-primary'
-                        : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
+                    className={`pb-4 font-medium capitalize transition-colors border-b-2 -mb-px ${activeTab === tab
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                      }`}
                   >
                     {tab === 'description' ? 'Description' : tab === 'specs' ? 'Specifications' : 'Care Guide'}
                   </button>
@@ -405,8 +404,79 @@ export default function ProductDetailPage() {
             </div>
 
             {activeTab === 'description' && (
-              <div className="max-w-2xl">
-                <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+                {/* Left Column: Description & Specs */}
+                <div className="lg:col-span-2 space-y-10">
+                  <div>
+                    <h3 className="text-xl font-bold mb-4">About This Plant</h3>
+                    <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-bold mb-4">Specifications</h3>
+                    <div className="space-y-0 text-sm">
+                      {[
+                        ['Plant Type', product.plantType],
+                        ['Height', product.height],
+                        ['Pot Size', product.potSize],
+                        ['Location', product.location],
+                        ['Maintenance', product.maintenanceLevel],
+                        ['Pet Friendly', product.petFriendly ? 'Yes ✅' : 'No ❌'],
+                        ['Watering', product.wateringFrequency],
+                        ['Sunlight', product.sunlightRequirement],
+                      ].filter(([, v]) => v).map(([label, value]) => (
+                        <div key={label as string} className="flex justify-between py-3 border-b border-border last:border-0">
+                          <span className="text-muted-foreground">{label}</span>
+                          <span className="font-medium text-right">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Care Guide */}
+                <div className="lg:col-span-1">
+                  <div className="bg-[#f0f9f1] p-6 rounded-2xl">
+                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                      <Sprout className="w-6 h-6 text-primary" />
+                      Plant Care Guide
+                    </h3>
+                    <div className="space-y-6 text-sm text-muted-foreground">
+                      {product.wateringFrequency && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1 text-foreground">
+                            <Droplets className="w-5 h-5 text-primary" />
+                            <p className="font-semibold">Watering</p>
+                          </div>
+                          <p>{product.wateringFrequency}</p>
+                        </div>
+                      )}
+                      {product.sunlightRequirement && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1 text-foreground">
+                            <Sun className="w-5 h-5 text-primary" />
+                            <p className="font-semibold">Sunlight</p>
+                          </div>
+                          <p>{product.sunlightRequirement}</p>
+                        </div>
+                      )}
+                      {product.maintenanceLevel && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1 text-foreground">
+                            <Sprout className="w-5 h-5 text-primary" />
+                            <p className="font-semibold">Maintenance</p>
+                          </div>
+                          <p>Maintenance level: {product.maintenanceLevel}</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-6 p-4 bg-primary/10 rounded-lg">
+                      <p className="text-sm font-medium text-primary">
+                        💡 Tip: Rotate your plant weekly for even growth and healthier leaves!
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -431,7 +501,7 @@ export default function ProductDetailPage() {
             )}
 
             {activeTab === 'care' && (
-              <div className="bg-muted/50 p-6 rounded-2xl max-w-lg">
+              <div className="bg-[#f0f9f1] p-6 rounded-2xl max-w-lg">
                 <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Sprout className="w-6 h-6 text-primary" />
                   Plant Care Guide

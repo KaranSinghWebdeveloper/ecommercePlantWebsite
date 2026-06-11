@@ -18,7 +18,7 @@ function normalise(product: AnyProduct) {
 
   const id = String(product.id);
   const slug = 'slug' in product ? (product as ApiProduct).slug : id;
-  const href = `/product/${slug}`;
+  const href = `/plants/${slug}`;
 
   // Image: API has images[] with imageUrl, static has product.image (string)
   const image = isApi

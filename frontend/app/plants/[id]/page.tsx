@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     product.images?.find((img: any) => img.isPrimary)?.imageUrl ||
     product.images?.[0]?.imageUrl;
 
-  const canonical = `${SITE_URL}/product/${slug}`;
+  const canonical = `${SITE_URL}/plants/${slug}`;
 
   return {
     title,
@@ -109,7 +109,7 @@ export default async function ProductPage({ params }: PageProps) {
             "@type": "ListItem",
             position: 3,
             name: product?.name ?? slug,
-            item: `${SITE_URL}/product/${slug}`,
+            item: `${SITE_URL}/plants/${slug}`,
           },
         ],
       },
@@ -117,17 +117,17 @@ export default async function ProductPage({ params }: PageProps) {
         ? [
             {
               "@type": "Product",
-              "@id": `${SITE_URL}/product/${slug}`,
+              "@id": `${SITE_URL}/plants/${slug}`,
               name: product.name,
               description: product.description || product.shortDescription,
               sku: product.sku || product.slug,
               brand: { "@type": "Brand", name: "HarYali" },
               image: product.images?.map((img: any) => img.imageUrl) ?? [],
-              url: `${SITE_URL}/product/${slug}`,
+              url: `${SITE_URL}/plants/${slug}`,
               category: product.category?.name,
               offers: {
                 "@type": "Offer",
-                url: `${SITE_URL}/product/${slug}`,
+                url: `${SITE_URL}/plants/${slug}`,
                 priceCurrency: "INR",
                 price: price,
                 priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
