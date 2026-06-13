@@ -33,9 +33,23 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     try {
       const storedToken = localStorage.getItem('customerToken');
       const storedCustomer = localStorage.getItem('customerUser');
+      
       if (storedToken && storedCustomer) {
-        setToken(storedToken);
-        setCustomer(JSON.parse(storedCustomer));
+        let isExpired = false;
+        try {
+          const payload = JSON.parse(atob(storedToken.split('.')[1]));
+          if (payload.exp && payload.exp * 1000 < Date.now()) {
+            isExpired = true;
+          }
+        } catch (e) {}
+
+        if (isExpired) {
+          localStorage.removeItem('customerToken');
+          localStorage.removeItem('customerUser');
+        } else {
+          setToken(storedToken);
+          setCustomer(JSON.parse(storedCustomer));
+        }
       }
     } catch {}
     setIsLoading(false);
@@ -103,7 +117,7 @@ export function useCustomerAuth() {
 
 // Helper hook for authenticated customer API calls
 export function useCustomerApi() {
-  const { token } = useCustomerAuth();
+  const { token, logout } = useCustomerAuth();
 
   const customerFetch = useCallback(
     async (endpoint: string, options: RequestInit = {}) => {
@@ -117,10 +131,16 @@ export function useCustomerApi() {
         credentials: 'include',
       });
       const data = await res.json();
+
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        throw new Error(data.message || 'Session expired. Please log in again.');
+      }
+
       if (!res.ok) throw new Error(data.message || 'Request failed');
       return data;
     },
-    [token]
+    [token, logout]
   );
 
   return { customerFetch };

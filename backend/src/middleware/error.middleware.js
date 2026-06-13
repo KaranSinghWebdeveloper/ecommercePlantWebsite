@@ -23,11 +23,12 @@ const errorHandler = (err, req, res, next) => {
   // Handle Joi validation errors
   if (err.isJoi) {
     statusCode = 422;
-    message = 'Validation Error';
     errors = err.details.map(detail => ({
       field: detail.context.key,
       message: detail.message
     }));
+    const detailedMessage = errors.map(e => e.message).join(', ');
+    message = `Validation Error: ${detailedMessage}`;
   }
 
   if (process.env.NODE_ENV === 'development' && !err.isJoi) {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { useCart } from '../../context/CartContext';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
-import { ShoppingCart, Truck, CreditCard, ChevronRight, User, Mail, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Truck, CreditCard, ChevronRight, User, Mail, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 
@@ -41,10 +41,50 @@ export default function CheckoutPage() {
     freeDeliveryApplied: false
   });
   
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('COD');
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('ONLINE');
   const [loading, setLoading] = useState(false);
   const [calculating, setCalculating] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      const fetchAddresses = async () => {
+        setLoadingAddresses(true);
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/customer/addresses`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (data.success) {
+            setSavedAddresses(data.data || []);
+          }
+        } catch (err) {
+          console.error('Failed to fetch addresses', err);
+        } finally {
+          setLoadingAddresses(false);
+        }
+      };
+      fetchAddresses();
+    }
+  }, [isAuthenticated, token]);
+
+  const handleSelectAddress = (addr: any) => {
+    setFormData(prev => ({
+      ...prev,
+      name: addr.fullName || prev.name,
+      phone: addr.phone || prev.phone,
+      addressLine1: addr.addressLine1 || '',
+      addressLine2: addr.addressLine2 || '',
+      city: addr.city || '',
+      state: addr.state || '',
+      pincode: addr.pincode || '',
+      landmark: addr.landmark || ''
+    }));
+    toast.success('Address applied!');
+  };
 
   useEffect(() => {
     if (cart.length === 0 && !loading && !isProcessingPayment) {
@@ -259,7 +299,14 @@ export default function CheckoutPage() {
   // AUTHENTICATION STEP
   if (authStep === 'AUTH') {
     return (
-      <div className="min-h-screen bg-muted/30 pt-24 pb-16 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/30 pt-24 pb-16 flex items-center justify-center relative">
+        <button 
+          onClick={() => router.back()}
+          className="absolute top-24 left-4 md:left-8 p-2 hover:bg-muted/80 rounded-full transition-colors flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-medium hidden sm:inline">Back to Cart</span>
+        </button>
         <div className="w-full max-w-md px-4">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -341,7 +388,16 @@ export default function CheckoutPage() {
       <div className="min-h-screen bg-muted/30 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold">Checkout</h1>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => router.back()} 
+                className="p-2 hover:bg-card border border-transparent hover:border-border rounded-full transition-colors"
+                aria-label="Go back"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
+              <h1 className="text-3xl font-bold">Checkout</h1>
+            </div>
             <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
               <User className="w-4 h-4" />
               <span>{customer?.name || customer?.email}</span>
@@ -377,6 +433,34 @@ export default function CheckoutPage() {
                   <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">2</span>
                   Delivery Address
                 </h2>
+
+                {savedAddresses.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium mb-3 text-muted-foreground">Select a saved address:</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {savedAddresses.map((addr) => (
+                        <div 
+                          key={addr.id}
+                          onClick={() => handleSelectAddress(addr)}
+                          className="border border-border rounded-xl p-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-muted/10 relative"
+                        >
+                          <p className="font-semibold text-sm">{addr.fullName}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                            {addr.addressLine1}, {addr.addressLine2 ? addr.addressLine2 + ', ' : ''}
+                            {addr.city}, {addr.state} - {addr.pincode}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-2 font-medium">Phone: {addr.phone}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-6 relative flex items-center py-2">
+                       <div className="flex-grow border-t border-border"></div>
+                       <span className="flex-shrink-0 mx-4 text-xs font-semibold tracking-wider text-muted-foreground">OR ENTER NEW ADDRESS</span>
+                       <div className="flex-grow border-t border-border"></div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium mb-1">Address Line 1 *</label>

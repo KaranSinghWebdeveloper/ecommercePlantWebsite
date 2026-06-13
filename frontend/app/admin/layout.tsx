@@ -32,5 +32,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  const isPublic = PUBLIC_ADMIN_PATHS.some(p => pathname.startsWith(p));
+  if (!isAuthenticated && !isPublic) {
+    return null; // Block rendering while redirecting
+  }
+
   return <>{children}</>;
 }

@@ -29,12 +29,28 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem('adminToken');
-    const storedAdmin = localStorage.getItem('adminUser');
-    if (stored && storedAdmin) {
-      setToken(stored);
-      setAdmin(JSON.parse(storedAdmin));
-    }
+    try {
+      const stored = localStorage.getItem('adminToken');
+      const storedAdmin = localStorage.getItem('adminUser');
+      
+      if (stored && storedAdmin) {
+        let isExpired = false;
+        try {
+          const payload = JSON.parse(atob(stored.split('.')[1]));
+          if (payload.exp && payload.exp * 1000 < Date.now()) {
+            isExpired = true;
+          }
+        } catch (e) {}
+
+        if (isExpired) {
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+        } else {
+          setToken(stored);
+          setAdmin(JSON.parse(storedAdmin));
+        }
+      }
+    } catch (e) {}
     setIsLoading(false);
   }, []);
 
@@ -86,7 +102,7 @@ export function useAdminAuth() {
 
 // Helper to make authenticated admin API calls
 export function useAdminApi() {
-  const { token } = useAdminAuth();
+  const { token, logout } = useAdminAuth();
 
   const adminFetch = useCallback(
     async (endpoint: string, options: RequestInit = {}) => {
@@ -100,10 +116,16 @@ export function useAdminApi() {
         credentials: 'include',
       });
       const data = await res.json();
+      
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        throw new Error(data.message || 'Session expired. Please log in again.');
+      }
+      
       if (!res.ok) throw new Error(data.message || 'API Error');
       return data;
     },
-    [token]
+    [token, logout]
   );
 
   return { adminFetch };

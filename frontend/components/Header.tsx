@@ -15,8 +15,14 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  
+  const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
+  const locationRef = useRef<HTMLDivElement>(null);
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+
   const { getCartCount, wishlist, isHydrated } = useCart();
-  const { customer, isAuthenticated, logout } = useCustomerAuth();
+  const { customer, isAuthenticated, logout, token } = useCustomerAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -26,10 +32,39 @@ export default function Header() {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setProfileDropdownOpen(false);
       }
+      if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
+        setLocationDropdownOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      const fetchAddresses = async () => {
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/customer/addresses`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (data.success) {
+            setSavedAddresses(data.data || []);
+            // Auto select the first address if none is selected
+            if (data.data && data.data.length > 0 && !selectedAddress) {
+              setSelectedAddress(data.data[0]);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to fetch addresses', err);
+        }
+      };
+      fetchAddresses();
+    } else {
+      setSavedAddresses([]);
+      setSelectedAddress(null);
+    }
+  }, [isAuthenticated, token]);
 
   // ✅ Dynamic categories from API
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
@@ -97,10 +132,71 @@ export default function Header() {
             {/* Right Icons */}
             <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
               {/* Location */}
-              <button className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors">
-                <MapPin className="w-5 h-5 text-primary" />
-                <span className="text-sm">Deliver to</span>
-              </button>
+              <div ref={locationRef} className="relative hidden lg:block">
+                <button 
+                  onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors text-left"
+                >
+                  <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-xs text-muted-foreground leading-none">Deliver to</span>
+                    <span className="text-sm font-semibold truncate max-w-[120px] leading-tight mt-0.5">
+                      {selectedAddress ? selectedAddress.addressLine1 : 'Select Address'}
+                    </span>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground ml-1 flex-shrink-0" />
+                </button>
+
+                <AnimatePresence>
+                  {locationDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      className="absolute right-0 top-full mt-2 w-72 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50"
+                    >
+                      <div className="p-4 border-b border-border bg-muted/30">
+                        <h3 className="font-semibold text-sm">Choose your location</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Delivery options and delivery speeds may vary for different locations</p>
+                      </div>
+                      
+                      {isAuthenticated ? (
+                        <div className="max-h-60 overflow-y-auto p-2">
+                          {savedAddresses.length > 0 ? (
+                            savedAddresses.map((addr) => (
+                              <button
+                                key={addr.id}
+                                onClick={() => { setSelectedAddress(addr); setLocationDropdownOpen(false); }}
+                                className={`w-full text-left px-3 py-3 rounded-xl mb-1 hover:bg-muted transition-colors ${selectedAddress?.id === addr.id ? 'bg-primary/5 border border-primary/20' : 'border border-transparent'}`}
+                              >
+                                <p className="font-semibold text-sm">{addr.fullName}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{addr.addressLine1}, {addr.city} {addr.pincode}</p>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="p-4 text-center text-sm text-muted-foreground">No saved addresses</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="p-4 text-center">
+                          <p className="text-sm text-muted-foreground mb-3">Sign in to see your addresses</p>
+                          <Link href="/profile" onClick={() => setLocationDropdownOpen(false)} className="block w-full py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium">Sign in to securely shop</Link>
+                        </div>
+                      )}
+
+                      <div className="p-3 border-t border-border bg-muted/10">
+                        <Link
+                          href="/profile?tab=addresses"
+                          onClick={() => setLocationDropdownOpen(false)}
+                          className="flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline w-full py-1"
+                        >
+                          Manage / Add Address
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Wishlist */}
               <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
