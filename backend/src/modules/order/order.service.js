@@ -2,6 +2,7 @@ const prisma = require('../../core/prisma');
 const checkoutService = require('../checkout/checkout.service');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const { orderPaymentLogger } = require('../../utils/logger');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_MOCK_KEY_ID',
@@ -160,6 +161,13 @@ const createOrder = async (sessionId, orderData) => {
     return order;
   });
 
+  orderPaymentLogger('Order created', { 
+    orderNumber: localOrder.orderNumber, 
+    paymentMethod, 
+    totalAmount: localOrder.totalAmount,
+    razorpayOrderId: rzpOrder ? rzpOrder.id : null
+  });
+
   return { order: localOrder, rzpOrder };
 };
 
@@ -214,6 +222,12 @@ const verifyPayment = async (razorpay_order_id, razorpay_payment_id, razorpay_si
         await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
       }
     }
+
+    orderPaymentLogger('Payment verified', { 
+      orderNumber: order.orderNumber, 
+      razorpayOrderId: razorpay_order_id, 
+      razorpayPaymentId: razorpay_payment_id 
+    });
 
     return true;
   } else {

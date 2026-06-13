@@ -3,10 +3,12 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const { errorHandler, notFoundHandler } = require('./middleware/error.middleware');
+const { requestLogger } = require('./utils/logger');
 
 const app = express();
 
 // Middlewares
+app.use(requestLogger);
 app.use(cors({
   origin: [
     'http://localhost:3000',
